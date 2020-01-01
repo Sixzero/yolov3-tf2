@@ -1,11 +1,9 @@
+import cv2
+import numpy as np
+import tensorflow as tf
+import yolov3_tf2.dataset as dataset
 from absl import app, flags, logging
 from absl.flags import FLAGS
-
-import tensorflow as tf
-# tf.config.optimizer.set_jit(True)
-
-import numpy as np
-import cv2
 from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
     EarlyStopping,
@@ -18,7 +16,8 @@ from yolov3_tf2.models import (
     yolo_tiny_anchors, yolo_tiny_anchor_masks
 )
 from yolov3_tf2.utils import freeze_all
-import yolov3_tf2.dataset as dataset
+
+# tf.config.optimizer.set_jit(True)
 
 flags.DEFINE_string('dataset', '', 'path to dataset')
 flags.DEFINE_string('val_dataset', '', 'path to validation dataset')
@@ -43,10 +42,12 @@ flags.DEFINE_integer('batch_size', 8, 'batch size')
 flags.DEFINE_float('learning_rate', 1e-3, 'learning rate')
 flags.DEFINE_integer('num_classes', 80, 'number of classes in the model')
 flags.DEFINE_integer('weights_num_classes', None, 'specify num class for `weights` file if different, '
-                     'useful in transfer learning with different number of classes')
+                                                  'useful in transfer learning with different number of classes')
 
 import os
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 
 def main(_argv):
     physical_devices = tf.config.experimental.list_physical_devices('GPU')
@@ -101,7 +102,7 @@ def main(_argv):
         else:
             model_pretrained = YoloV3(
                 FLAGS.size, training=True, classes=FLAGS.weights_num_classes or FLAGS.num_classes)
-        model_pretrained.load_weights(FLAGS.weights)
+        model_pretrained.load_weights(FLAGS.weights[:-3] + tiny_text + ".tf")
 
         if FLAGS.transfer == 'darknet':
             model.get_layer('yolo_darknet').set_weights(
@@ -184,7 +185,7 @@ def main(_argv):
         callbacks = [
             ReduceLROnPlateau(verbose=1, factor=0.3, patience=4, min_delta=1e-1),
             EarlyStopping(patience=13, verbose=1),
-            ModelCheckpoint('checkpoints/yolov3'+tiny_text+'_best.tf',
+            ModelCheckpoint('checkpoints/yolov3' + tiny_text + '_best.tf',
                             save_best_only=True, verbose=1, save_weights_only=True),
             TensorBoard(log_dir='logs')
         ]
