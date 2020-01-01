@@ -9,6 +9,10 @@
 /output.jpg
 /data/voc2012_raw/
 .idea
+train/voc2012
+train/testing
+.DS_store
+results
 
 # Created by https://www.gitignore.io/api/python
 # Edit at https://www.gitignore.io/?templates=python
